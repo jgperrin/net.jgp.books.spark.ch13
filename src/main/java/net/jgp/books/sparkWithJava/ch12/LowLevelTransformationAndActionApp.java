@@ -1,14 +1,21 @@
 package net.jgp.books.sparkWithJava.ch12;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Iterator;
 
 import org.apache.spark.api.java.function.FilterFunction;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.ForeachFunction;
 import org.apache.spark.api.java.function.MapFunction;
+import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
+import org.apache.spark.sql.KeyValueGroupedDataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+
+import net.jgp.books.sparkWithJava.ch12.LowLevelTransformationAndActionApp.F;
 
 /**
  * Low level transformations.
@@ -16,6 +23,11 @@ import org.apache.spark.sql.SparkSession;
  * @author jgp
  */
 public class LowLevelTransformationAndActionApp implements Serializable {
+
+  public class F implements MapFunction<T, U> {
+
+  }
+
   private static final long serialVersionUID = -17568L;
 
   /**
@@ -27,6 +39,52 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     LowLevelTransformationAndActionApp app =
         new LowLevelTransformationAndActionApp();
     app.start();
+  }
+
+  private final class CountyFipsExtractorUsingMap
+      implements MapFunction<Row, String> {
+    private static final long serialVersionUID = 26547L;
+
+    @Override
+    public String call(Row r) throws Exception {
+      String s = r.getAs("id2").toString().substring(2);
+      return s;
+    }
+  }
+
+  private final class SmallCountiesUsingFilter implements FilterFunction<Row> {
+    private static final long serialVersionUID = 17392L;
+
+    @Override
+    public boolean call(Row r) throws Exception {
+      if (r.getInt(4) < 30000) {
+        return true;
+      }
+      return false;
+    }
+  }
+
+  public class CountyStateExtractorUsingFlatMap
+      implements FlatMapFunction<Row, String> {
+    private static final long serialVersionUID = 63784L;
+
+    @Override
+    public Iterator<String> call(Row r) throws Exception {
+      String[] s = r.getAs("Geography").toString().split(", ");
+      return Arrays.stream(s).iterator();
+    }
+  }
+
+  public class FirstCountyAndStateOfPartitionUsingMapPartitions
+      implements MapPartitionsFunction<Row, String> {
+    private static final long serialVersionUID = -62694L;
+
+    @Override
+    public Iterator<String> call(Iterator<Row> input) throws Exception {
+      Row r = input.next();
+      String[] s = r.getAs("Geography").toString().split(", ");
+      return Arrays.stream(s).iterator();
+    }
   }
 
   private final class ForeachFunctionExample
@@ -42,30 +100,6 @@ public class LowLevelTransformationAndActionApp implements Serializable {
       }
       count++;
     }
-  }
-
-  private final class CountyFipsExtractorUsingMap
-      implements MapFunction<Row, String> {
-    private static final long serialVersionUID = 26547L;
-
-    @Override
-    public String call(Row r) throws Exception {
-      String s = r.getAs("id2").toString().substring(2);
-      return s;
-    }
-  }
-
-  private final class SmallCountiesFilter implements FilterFunction<Row> {
-    private static final long serialVersionUID = 17392L;
-
-    @Override
-    public boolean call(Row r) throws Exception {
-      if (r.getInt(4) < 30000) {
-        return true;
-      }
-      return false;
-    }
-
   }
 
   /**
@@ -100,14 +134,36 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     df.show(5);
 
     // Transformation
-    Dataset<String> dfString = df.map(new CountyFipsExtractorUsingMap(),
+    System.out.println("map()");
+    Dataset<String> dfMap = df.map(new CountyFipsExtractorUsingMap(),
         Encoders.STRING());
-    dfString.show(5);
+    dfMap.show(5);
 
-    Dataset<Row> dfFilter = df.filter(new SmallCountiesFilter());
+    System.out.println("filter()");
+    Dataset<Row> dfFilter = df.filter(new SmallCountiesUsingFilter());
     dfFilter.show(5);
 
+    System.out.println("flatMap()");
+    Dataset<String> dfFlatMap = df.flatMap(
+        new CountyStateExtractorUsingFlatMap(),
+        Encoders.STRING());
+    dfFlatMap.show(5);
+
+    System.out.println("mapPartitions()");
+    Dataset<Row> dfPartitioned = df.repartition(10);
+    Dataset<String> dfMapPartitions = dfPartitioned.mapPartitions(
+        new FirstCountyAndStateOfPartitionUsingMapPartitions(),
+        Encoders.STRING());
+    System.out.println("Input dataframe has " + df.count() + " records");
+    System.out.println("Result dataframe has " + dfMapPartitions.count()
+        + " records");
+    dfMapPartitions.show(5);
+
+    System.out.println("groupByKey()");
+    KeyValueGroupedDataset<String, Row> dfGroupByKey = df.groupByKey(new CountyFipsExtractorUsingMap(), Encoders.STRING());
+    dfGroupByKey.agg().show(5);
+
     // Action
-    df.foreach(new ForeachFunctionExample());
+    // df.foreach(new ForeachFunctionExample());
   }
 }
