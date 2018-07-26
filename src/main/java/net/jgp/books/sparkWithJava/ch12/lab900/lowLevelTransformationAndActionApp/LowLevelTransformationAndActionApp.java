@@ -1,4 +1,4 @@
-package net.jgp.books.sparkWithJava.ch12;
+package net.jgp.books.sparkWithJava.ch12.lab900.lowLevelTransformationAndActionApp;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -15,18 +15,12 @@ import org.apache.spark.sql.KeyValueGroupedDataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-import net.jgp.books.sparkWithJava.ch12.LowLevelTransformationAndActionApp.F;
-
 /**
  * Low level transformations.
  * 
  * @author jgp
  */
 public class LowLevelTransformationAndActionApp implements Serializable {
-
-  public class F implements MapFunction<T, U> {
-
-  }
 
   private static final long serialVersionUID = -17568L;
 
@@ -160,8 +154,9 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     dfMapPartitions.show(5);
 
     System.out.println("groupByKey()");
-    KeyValueGroupedDataset<String, Row> dfGroupByKey = df.groupByKey(new CountyFipsExtractorUsingMap(), Encoders.STRING());
-    dfGroupByKey.agg().show(5);
+    KeyValueGroupedDataset<String, Row> dfGroupByKey = df.groupByKey(
+        new CountyFipsExtractorUsingMap(), Encoders.STRING());
+    dfGroupByKey.count().show(5);
 
     // Action
     // df.foreach(new ForeachFunctionExample());
