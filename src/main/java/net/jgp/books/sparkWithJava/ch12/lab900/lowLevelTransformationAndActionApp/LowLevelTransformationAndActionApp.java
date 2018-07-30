@@ -4,16 +4,21 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.ForeachFunction;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
+import org.apache.spark.api.java.function.ReduceFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.KeyValueGroupedDataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+
+import static org.apache.spark.sql.functions.count;
+import static org.apache.spark.sql.functions.split;
 
 /**
  * Low level transformations.
@@ -35,6 +40,25 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     app.start();
   }
 
+  /**
+   * Concatenates the counties and states
+   * 
+   * @author jgp
+   */
+  private final class CountyStateConcatenatorUsingReduce
+      implements ReduceFunction<String> {
+    private static final long serialVersionUID = 12859L;
+
+    @Override
+    public String call(String v1, String v2) throws Exception {
+      return v1 + ", " + v2;
+    }
+  }
+
+  /**
+   * 
+   * @author jgp
+   */
   private final class CountyFipsExtractorUsingMap
       implements MapFunction<Row, String> {
     private static final long serialVersionUID = 26547L;
@@ -43,6 +67,23 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     public String call(Row r) throws Exception {
       String s = r.getAs("id2").toString().substring(2);
       return s;
+    }
+  }
+
+  /**
+   * Extracts the state id from each row.
+   * 
+   * @author jgp
+   */
+  private final class StateFipsExtractorUsingMap
+      implements MapFunction<Row, String> {
+    private static final long serialVersionUID = 26572L;
+
+    @Override
+    public String call(Row r) throws Exception {
+      String id = r.getAs("id").toString();
+      String state = id.substring(9, 11);
+      return state;
     }
   }
 
@@ -127,22 +168,39 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     df.printSchema();
     df.show(5);
 
-    // Transformation
+    // Master dataframe
+    Dataset<Row> countyStateDf = df
+        .withColumn(
+            "State",
+            split(df.col("Geography"), ", ").getItem(1))
+        .withColumn(
+            "County",
+            split(df.col("Geography"), ", ").getItem(0));
+    countyStateDf.show(5);
+
+    // Transformations
+    // ---------------
+
+    // map
     System.out.println("map()");
-    Dataset<String> dfMap = df.map(new CountyFipsExtractorUsingMap(),
+    Dataset<String> dfMap = df.map(
+        new CountyFipsExtractorUsingMap(),
         Encoders.STRING());
     dfMap.show(5);
 
+    // filter
     System.out.println("filter()");
     Dataset<Row> dfFilter = df.filter(new SmallCountiesUsingFilter());
     dfFilter.show(5);
 
+    // flatMap
     System.out.println("flatMap()");
-    Dataset<String> dfFlatMap = df.flatMap(
+    Dataset<String> countyStateDs = df.flatMap(
         new CountyStateExtractorUsingFlatMap(),
         Encoders.STRING());
-    dfFlatMap.show(5);
+    countyStateDs.show(5);
 
+    // mapPartitions
     System.out.println("mapPartitions()");
     Dataset<Row> dfPartitioned = df.repartition(10);
     Dataset<String> dfMapPartitions = dfPartitioned.mapPartitions(
@@ -153,10 +211,31 @@ public class LowLevelTransformationAndActionApp implements Serializable {
         + " records");
     dfMapPartitions.show(5);
 
+    // groupByKey
     System.out.println("groupByKey()");
-    KeyValueGroupedDataset<String, Row> dfGroupByKey = df.groupByKey(
-        new CountyFipsExtractorUsingMap(), Encoders.STRING());
-    dfGroupByKey.count().show(5);
+    KeyValueGroupedDataset<String, Row> groupByKeyDs =
+        df.groupByKey(
+            new StateFipsExtractorUsingMap(),
+            Encoders.STRING());
+    groupByKeyDs.count().show(5);
+
+    // reduce
+    System.out.println("reduce()");
+    String listOfCountyStateDs = countyStateDs
+        .reduce(
+            new CountyStateConcatenatorUsingReduce());
+    System.out.println(listOfCountyStateDs);
+
+    // dropDuplicates
+    System.out.println("dropDuplicates()");
+    Dataset<Row> stateDf = countyStateDf.dropDuplicates("State");
+    stateDf.show(5);
+    System.out.println("stateDf has " + stateDf.count() + " rows.");
+    
+    // agg
+    System.out.println("agg()");
+    Dataset<Row> countCountDf = countyStateDf.agg(count("County"));
+    countCountDf.show(5);
 
     // Action
     // df.foreach(new ForeachFunctionExample());
