@@ -1,10 +1,12 @@
 package net.jgp.books.sparkWithJava.ch12.lab900.lowLevelTransformationAndActionApp;
 
+import static org.apache.spark.sql.functions.count;
+import static org.apache.spark.sql.functions.split;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.ForeachFunction;
@@ -16,9 +18,6 @@ import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.KeyValueGroupedDataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-
-import static org.apache.spark.sql.functions.count;
-import static org.apache.spark.sql.functions.split;
 
 /**
  * Low level transformations.
