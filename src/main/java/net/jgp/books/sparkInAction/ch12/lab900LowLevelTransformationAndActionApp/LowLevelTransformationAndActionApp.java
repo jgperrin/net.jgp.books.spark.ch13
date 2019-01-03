@@ -1,4 +1,4 @@
-package net.jgp.books.sparkWithJava.ch12.lab900.lowLevelTransformationAndActionApp;
+package net.jgp.books.sparkInAction.ch12.lab900LowLevelTransformationAndActionApp;
 
 import static org.apache.spark.sql.functions.count;
 import static org.apache.spark.sql.functions.split;
