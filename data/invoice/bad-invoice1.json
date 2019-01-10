@@ -1,0 +1,25 @@
+{
+	"@context": "http://schema.org",
+	"@type": "Invoice",
+	"description": "January 2015 Acme Bill",
+	"url": "https://www.americanexpress.com",
+	"accountId": "xxxx-xxxx-xxxx-1234",
+	"potentialaction": {
+		"url": "https://example.com",
+		"@type": "PayAction"
+	},
+	"paymentDue": "2020-01-30",
+	"minimumPaymentDue": {
+		"@type": "PriceSpecification",
+		"price": "$15.00"
+	},
+	"totalPaymentDue": {
+		"@type": "PriceSpecification",
+		"price": "$200.00"
+	},
+	"paymentStatus": "payment due",
+	"provider": {
+		"@type": "Organization",
+		"name": "Acme Bank"
+	}
+}

@@ -1,0 +1,49 @@
+{
+	"@context": "http://schema.org/",
+	"@type": "Invoice",
+	"broker": {
+		"@type": "LocalBusiness",
+		"name": "ACME Home Heating"
+	},
+	"accountId": "xxxx-xxxx-xxxx-4972",
+	"customer": {
+		"@type": "Person",
+		"name": "Emmanuel Macron"
+	},
+	"paymentDueDate": "2016-01-30",
+	"minimumPaymentDue": {
+		"@type": "PriceSpecification",
+		"price": 6000.00,
+		"priceCurrency": "EUR"
+	},
+	"totalPaymentDue": {
+		"@type": "PriceSpecification",
+		"price": 6000.00,
+		"priceCurrency": "EUR"
+	},
+	"paymentStatus": "http://schema.org/PaymentComplete",
+	"referencesOrder": [
+		{
+			"@type": "Order",
+			"description": "furnace",
+			"orderDate": "2017-12-07",
+			"orderNumber": "124MAC",
+			"paymentMethod": "http://purl.org/goodrelations/v1#ByInvoice",
+			"orderedItem": {
+				"@type": "Product",
+				"name": "ACME Furnace 4500",
+				"productId": "ACMFUR45"
+			}
+		},
+		{
+			"@type": "Order",
+			"description": "furnace installation",
+			"orderDate": "2017-12-07",
+			"paymentMethod": "http://purl.org/goodrelations/v1#ByInvoice",
+			"orderedItem": {
+				"@type": "Service",
+				"description": "furnace tuning"
+			}
+		}
+	]
+}
