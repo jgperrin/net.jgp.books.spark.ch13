@@ -3,7 +3,7 @@ package net.jgp.books.sparkInAction.ch12.lab200JsonInvoice;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
+import static org.apache.spark.sql.functions.explode;
 
 /**
  * Processing of invoices formatted using the schema.org format.
@@ -49,7 +49,7 @@ public class JsonInvoiceDisplayApp {
 
     Dataset<Row> elementsOrderedByAccountDf = invoicesDf.select(
         invoicesDf.col("accountId"),
-        functions.explode(invoicesDf.col("referencesOrder")).as("order"));
+        explode(invoicesDf.col("referencesOrder")).as("order"));
     elementsOrderedByAccountDf = elementsOrderedByAccountDf
         .withColumn(
             "type",
