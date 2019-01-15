@@ -1,4 +1,4 @@
-package net.jgp.books.sparkInAction.ch12.lab900LowLevelTransformationAndActionApp;
+package net.jgp.books.sparkInAction.ch12.lab900LowLevelTransformationAndAction;
 
 import static org.apache.spark.sql.functions.count;
 import static org.apache.spark.sql.functions.split;
@@ -86,7 +86,8 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     }
   }
 
-  private final class SmallCountiesUsingFilter implements FilterFunction<Row> {
+  private final class SmallCountiesUsingFilter implements FilterFunction<
+      Row> {
     private static final long serialVersionUID = 17392L;
 
     @Override
@@ -149,8 +150,7 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     Dataset<Row> df = spark.read().format("csv")
         .option("header", "true")
         .option("inferSchema", "true")
-        .load(
-            "data/PEP_2017_PEPANNRES.csv");
+        .load("data/census/PEP_2017_PEPANNRES.csv");
     df = df.withColumnRenamed("GEO.id", "id")
         .withColumnRenamed("GEO.id2", "id2")
         .withColumnRenamed("GEO.display-label", "Geography")
@@ -230,7 +230,7 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     Dataset<Row> stateDf = countyStateDf.dropDuplicates("State");
     stateDf.show(5);
     System.out.println("stateDf has " + stateDf.count() + " rows.");
-    
+
     // agg
     System.out.println("agg()");
     Dataset<Row> countCountDf = countyStateDf.agg(count("County"));
