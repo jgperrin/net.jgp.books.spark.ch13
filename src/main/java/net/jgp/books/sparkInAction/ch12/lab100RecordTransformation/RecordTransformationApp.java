@@ -91,7 +91,8 @@ public class RecordTransformationApp {
     //            "county",
     //            split(intermediateDf.col("label"), ", ").getItem(0));
     // @formatter:on
-    // Performs some statistics on the
+
+    // Performs some statistics on the intermediate dataframe
     Dataset<Row> statDf = intermediateDf
         .withColumn("diff", expr("est2010-real2010"))
         .withColumn("growth", expr("est2017-est2010"))
@@ -109,13 +110,15 @@ public class RecordTransformationApp {
     statDf.printSchema();
     statDf.sample(.01).show(5, false);
 
-    // Extras
-    statDf = statDf.sort(statDf.col("growth").desc());
-    System.out.println("Top 5 counties with the most growth:");
-    statDf.show(5, false);
-
-    statDf = statDf.sort(statDf.col("growth"));
-    System.out.println("Top 5 counties with the most loss:");
-    statDf.show(5, false);
+    // Extras: see how you can sort!
+    // @formatter:off
+    //    statDf = statDf.sort(statDf.col("growth").desc());
+    //    System.out.println("Top 5 counties with the most growth:");
+    //    statDf.show(5, false);
+    //
+    //    statDf = statDf.sort(statDf.col("growth"));
+    //    System.out.println("Top 5 counties with the most loss:");
+    //    statDf.show(5, false);
+    // @formatter:on
   }
 }
