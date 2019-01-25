@@ -1,9 +1,10 @@
 package net.jgp.books.sparkInAction.ch12.lab210FlattenShipment;
 
+import static org.apache.spark.sql.functions.explode;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
 
 /**
  * Processing of invoices formatted using the schema.org format.
@@ -28,7 +29,7 @@ public class FlattenShipmentDisplayApp {
   private void start() {
     // Creates a session on a local master
     SparkSession spark = SparkSession.builder()
-        .appName("Display of shipment")
+        .appName("Flatenning JSON doc describing shipments")
         .master("local")
         .getOrCreate();
 
@@ -49,7 +50,7 @@ public class FlattenShipmentDisplayApp {
         .withColumn("customer_state", df.col("customer.state"))
         .withColumn("customer_country", df.col("customer.country"))
         .drop("customer")
-        .withColumn("items", functions.explode(df.col("books")));
+        .withColumn("items", explode(df.col("books")));
     df = df
         .withColumn("qty", df.col("items.qty"))
         .withColumn("title", df.col("items.title"))
@@ -60,5 +61,9 @@ public class FlattenShipmentDisplayApp {
     df.show(5, false);
     df.printSchema();
 
+    df.createOrReplaceTempView("shipment_detail");
+    Dataset<Row> bookCountDf =
+        spark.sql("SELECT COUNT(*) AS bookCount FROM shipment_detail");
+    bookCountDf.show(false);
   }
 }
