@@ -1,9 +1,17 @@
 package net.jgp.books.sparkInAction.ch12.lab210JsonInvoice;
 
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.collect_list;
+import static org.apache.spark.sql.functions.struct;
+
+import java.util.Arrays;
+
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import static org.apache.spark.sql.functions.explode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Processing of invoices formatted using the schema.org format.
@@ -11,6 +19,9 @@ import static org.apache.spark.sql.functions.explode;
  * @author jgp
  */
 public class RestaurantDocumentApp {
+  private Logger log = LoggerFactory.getLogger(RestaurantDocumentApp.class);
+
+  public static final String TEMP = "temp_column";
 
   /**
    * main() is your entry point to the application.
@@ -18,8 +29,7 @@ public class RestaurantDocumentApp {
    * @param args
    */
   public static void main(String[] args) {
-    RestaurantDocumentApp app =
-        new RestaurantDocumentApp();
+    RestaurantDocumentApp app = new RestaurantDocumentApp();
     app.start();
   }
 
@@ -29,39 +39,95 @@ public class RestaurantDocumentApp {
   private void start() {
     // Creates a session on a local master
     SparkSession spark = SparkSession.builder()
-        .appName("Processing of invoices")
+        .appName("Building a restaurant fact sheet")
         .master("local")
         .getOrCreate();
 
-    // Reads a JSON, called countrytravelinfo.json, stores it in a dataframe
-    Dataset<Row> invoicesDf = spark.read()
-        .format("json")
-        .option("multiline", true)
-        .load("data/invoice/good-invoice*.json");
+    // Ingests businesses into dataframe
+    Dataset<Row> businessDf = spark.read()
+        .format("csv")
+        .load("data/orangecounty_restaurants/businesses.CSV");
+
+    // Ingests businesses into dataframe
+    Dataset<Row> inspectionDf = spark.read()
+        .format("csv")
+        .load("data/orangecounty_restaurants/inspections.CSV");
 
     // Shows at most 3 rows from the dataframe
-    invoicesDf.show(3);
-    invoicesDf.printSchema();
+    businessDf.show(3);
+    businessDf.printSchema();
 
-    Dataset<Row> invoiceAmountDf = invoicesDf.select("totalPaymentDue.*");
-    invoiceAmountDf.show(5);
-    invoiceAmountDf.printSchema();
+    inspectionDf.show(3);
+    inspectionDf.printSchema();
+  }
 
-    Dataset<Row> elementsOrderedByAccountDf = invoicesDf.select(
-        invoicesDf.col("accountId"),
-        explode(invoicesDf.col("referencesOrder")).as("order"));
-    elementsOrderedByAccountDf = elementsOrderedByAccountDf
-        .withColumn(
-            "type",
-            elementsOrderedByAccountDf.col("order.orderedItem.@type"))
-        .withColumn(
-            "description",
-            elementsOrderedByAccountDf.col("order.orderedItem.description"))
-        .withColumn(
-            "name",
-            elementsOrderedByAccountDf.col("order.orderedItem.name"))
-        .drop(elementsOrderedByAccountDf.col("order"));
-    elementsOrderedByAccountDf.show(10);
-    elementsOrderedByAccountDf.printSchema();
+  public Dataset<Row> crossJoin(
+      Dataset<Row> leftDf,
+      Dataset<Row> rightDf,
+      String claimSK,
+      String nestedJoinColumns,
+      String joinType,
+      String resultingColumnName) {
+
+    Dataset<Row> resDf = leftDf.join(rightDf, rightDf.col(claimSK).equalTo(
+        leftDf.col(nestedJoinColumns)));
+
+    String[] leftFieldnames = leftDf.columns();
+    Column[] leftColumns = new Column[leftFieldnames.length];
+    for (int i = 0; i < leftFieldnames.length; i++) {
+      leftColumns[i] = leftDf.col(leftFieldnames[i]);
+    }
+
+    log.debug("  We have {} columns to work with: {}",
+        leftColumns.length,
+        Arrays.toString(leftColumns));
+
+    Column[] allColumns = buildColumn(leftColumns, rightDf);
+    resDf = resDf.select(allColumns);
+    resDf = resDf.groupBy(leftColumns).agg(collect_list(col(TEMP)))
+        .withColumnRenamed("collect_list(" + TEMP + ")",
+            resultingColumnName);
+
+    if (log.isDebugEnabled()) {
+      resDf.printSchema();
+      resDf.show();
+      log.debug("  After x-join, we have {} rows.", resDf.count());
+    }
+
+    return resDf;
+  }
+
+  /**
+   * Creates an array of columns with the appropriate structure to
+   * reorganize the Dataframe.
+   * 
+   * @param claimColumns
+   * @param anyClaimDetailsDf
+   * @return
+   */
+  private Column[] buildColumn(Column[] claimColumns, Dataset<
+      Row> detailsDf) {
+
+    // The size of the array is the same size as the number of columns in
+    // the
+    // claim,
+    Column[] c = new Column[claimColumns.length + 1];
+
+    // Copy all claim columns
+    int i;
+    for (i = 0; i < claimColumns.length; i++) {
+      c[i] = claimColumns[i];
+    }
+
+    String[] detailsColumnNames = detailsDf.columns();
+    int detailsColumnCount = detailsColumnNames.length;
+    Column[] details = new Column[detailsColumnCount];
+    for (int j = 0; j < detailsColumnCount; j++) {
+      details[j] = detailsDf.col(detailsColumnNames[j]);
+    }
+
+    c[i] = struct(details).alias(TEMP);
+
+    return c;
   }
 }
