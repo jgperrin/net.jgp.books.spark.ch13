@@ -10,7 +10,7 @@ import static org.apache.spark.sql.functions.explode;
  * 
  * @author jgp
  */
-public class JsonInvoiceDisplayApp {
+public class RestaurantDocumentApp {
 
   /**
    * main() is your entry point to the application.
@@ -18,8 +18,8 @@ public class JsonInvoiceDisplayApp {
    * @param args
    */
   public static void main(String[] args) {
-    JsonInvoiceDisplayApp app =
-        new JsonInvoiceDisplayApp();
+    RestaurantDocumentApp app =
+        new RestaurantDocumentApp();
     app.start();
   }
 
