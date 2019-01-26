@@ -1,4 +1,4 @@
-package net.jgp.books.sparkInAction.ch12.lab220RestaurantDocument;
+package net.jgp.books.sparkInAction.ch12.lab420RestaurantDocument;
 
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.collect_list;
@@ -73,23 +73,23 @@ public class RestaurantDocumentApp {
    * 
    * @param leftDf
    * @param rightDf
-   * @param leftJoinColumnName
-   * @param rightJoinColumnName
+   * @param leftJoinCol
+   * @param rightJoinCol
    * @param joinType
-   * @param resultingColumnName
+   * @param nestedCol
    * @return
    */
   static public Dataset<Row> nestedJoin(
       Dataset<Row> leftDf,
       Dataset<Row> rightDf,
-      String leftJoinColumnName,
-      String rightJoinColumnName,
+      String leftJoinCol,
+      String rightJoinCol,
       String joinType,
-      String resultingColumnName) {
+      String nestedCol) {
 
     Dataset<Row> resDf = leftDf.join(
         rightDf,
-        rightDf.col(rightJoinColumnName).equalTo(leftDf.col(leftJoinColumnName)));
+        rightDf.col(rightJoinCol).equalTo(leftDf.col(leftJoinCol)));
 
     String[] leftFieldnames = leftDf.columns();
     Column[] leftColumns = new Column[leftFieldnames.length];
@@ -97,15 +97,16 @@ public class RestaurantDocumentApp {
       leftColumns[i] = leftDf.col(leftFieldnames[i]);
     }
 
-    log.debug("  We have {} columns to work with: {}",
+    log.debug(
+        "  We have {} columns to work with: {}",
         leftColumns.length,
         Arrays.toString(leftColumns));
 
     Column[] allColumns = buildColumn(leftColumns, rightDf);
     resDf = resDf.select(allColumns);
-    resDf = resDf.groupBy(leftColumns).agg(collect_list(col(TEMP)))
-        .withColumnRenamed("collect_list(" + TEMP + ")",
-            resultingColumnName);
+    resDf = resDf
+        .groupBy(leftColumns)
+        .agg(collect_list(col(TEMP)).as(nestedCol));
 
     if (log.isDebugEnabled()) {
       resDf.printSchema();

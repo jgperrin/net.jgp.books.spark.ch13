@@ -1,4 +1,4 @@
-package net.jgp.books.sparkInAction.ch12.lab210FlattenShipment;
+package net.jgp.books.sparkInAction.ch12.lab410FlattenShipment;
 
 import static org.apache.spark.sql.functions.explode;
 
