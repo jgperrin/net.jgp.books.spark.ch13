@@ -41,11 +41,12 @@ public class QueryOnJsonApp {
     // Explode the array
     df = df
         .withColumn("items", functions.explode(df.col("store.book")));
-    
+
     // Creates a view so I can use SQL
     df.createOrReplaceTempView("books");
     Dataset<Row> authorsOfReferenceBookDf =
-        spark.sql("SELECT items.author FROM books WHERE items.category = 'reference'");
+        spark.sql(
+            "SELECT items.author FROM books WHERE items.category = 'reference'");
     authorsOfReferenceBookDf.show(false);
   }
 }
