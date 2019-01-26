@@ -1,4 +1,4 @@
-package net.jgp.books.sparkInAction.ch12.lab210JsonInvoice;
+package net.jgp.books.sparkInAction.ch12.lab220RestaurantDocument;
 
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.collect_list;
@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
  * @author jgp
  */
 public class RestaurantDocumentApp {
-  private Logger log = LoggerFactory.getLogger(RestaurantDocumentApp.class);
+  private static Logger log =
+      LoggerFactory.getLogger(RestaurantDocumentApp.class);
 
   public static final String TEMP = "temp_column";
 
@@ -46,11 +47,13 @@ public class RestaurantDocumentApp {
     // Ingests businesses into dataframe
     Dataset<Row> businessDf = spark.read()
         .format("csv")
+        .option("header", true)
         .load("data/orangecounty_restaurants/businesses.CSV");
 
     // Ingests businesses into dataframe
     Dataset<Row> inspectionDf = spark.read()
         .format("csv")
+        .option("header", true)
         .load("data/orangecounty_restaurants/inspections.CSV");
 
     // Shows at most 3 rows from the dataframe
@@ -59,18 +62,34 @@ public class RestaurantDocumentApp {
 
     inspectionDf.show(3);
     inspectionDf.printSchema();
+
+    Dataset<Row> factSheetDf = nestedJoin(businessDf, inspectionDf,
+        "business_id", "business_id", "left", "inspections");
+    factSheetDf.show(3);
+    factSheetDf.printSchema();
   }
 
-  public Dataset<Row> crossJoin(
+  /**
+   * 
+   * @param leftDf
+   * @param rightDf
+   * @param leftJoinColumnName
+   * @param rightJoinColumnName
+   * @param joinType
+   * @param resultingColumnName
+   * @return
+   */
+  static public Dataset<Row> nestedJoin(
       Dataset<Row> leftDf,
       Dataset<Row> rightDf,
-      String claimSK,
-      String nestedJoinColumns,
+      String leftJoinColumnName,
+      String rightJoinColumnName,
       String joinType,
       String resultingColumnName) {
 
-    Dataset<Row> resDf = leftDf.join(rightDf, rightDf.col(claimSK).equalTo(
-        leftDf.col(nestedJoinColumns)));
+    Dataset<Row> resDf = leftDf.join(
+        rightDf,
+        rightDf.col(rightJoinColumnName).equalTo(leftDf.col(leftJoinColumnName)));
 
     String[] leftFieldnames = leftDf.columns();
     Column[] leftColumns = new Column[leftFieldnames.length];
@@ -91,7 +110,7 @@ public class RestaurantDocumentApp {
     if (log.isDebugEnabled()) {
       resDf.printSchema();
       resDf.show();
-      log.debug("  After x-join, we have {} rows.", resDf.count());
+      log.debug("  After nested join, we have {} rows.", resDf.count());
     }
 
     return resDf;
@@ -105,7 +124,7 @@ public class RestaurantDocumentApp {
    * @param anyClaimDetailsDf
    * @return
    */
-  private Column[] buildColumn(Column[] claimColumns, Dataset<
+  static private Column[] buildColumn(Column[] claimColumns, Dataset<
       Row> detailsDf) {
 
     // The size of the array is the same size as the number of columns in
