@@ -8,7 +8,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 /**
- * Low level transformations.
+ * Transforming records.
  * 
  * @author jgp
  */
