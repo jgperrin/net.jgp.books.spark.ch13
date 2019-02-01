@@ -1,21 +1,19 @@
 package net.jgp.books.sparkInAction.ch12.lab300Join;
 
-import static org.apache.spark.sql.functions.expr;
-import static org.apache.spark.sql.functions.split;
-import static org.apache.spark.sql.functions.size;
 import static org.apache.spark.sql.functions.element_at;
+import static org.apache.spark.sql.functions.size;
+import static org.apache.spark.sql.functions.split;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
 
 /**
- * Join.
+ * Performs a join between 3 datasets.
  * 
  * @author jgp
  */
-public class RecordTransformationApp {
+public class HigherEdInstitutionPerCountyApp {
 
   /**
    * main() is your entry point to the application.
@@ -23,7 +21,7 @@ public class RecordTransformationApp {
    * @param args
    */
   public static void main(String[] args) {
-    RecordTransformationApp app = new RecordTransformationApp();
+    HigherEdInstitutionPerCountyApp app = new HigherEdInstitutionPerCountyApp();
     app.start();
   }
 
@@ -125,21 +123,22 @@ public class RecordTransformationApp {
     Dataset<Row> institutionPerCountyDf = higherEdDf.join(
         countyZipDf,
         higherEdDf.col("zip").equalTo(countyZipDf.col("zip")),
-        "left");
-    institutionPerCountyDf = institutionPerCountyDf.join(
-        censusDf,
-        institutionPerCountyDf.col("county")
-            .equalTo(censusDf.col("countyId")),
-        "left");
-    institutionPerCountyDf.sample(0.1).show(3, false);
+        "left_semi");
+//    institutionPerCountyDf = institutionPerCountyDf.join(
+//        censusDf,
+//        institutionPerCountyDf.col("county")
+//            .equalTo(censusDf.col("countyId")),
+//        "left");
+    //institutionPerCountyDf.sample(false, 0.9).show(20, false);
+    institutionPerCountyDf.show(20, false);
     institutionPerCountyDf.printSchema();
 
-    institutionPerCountyDf = institutionPerCountyDf
-        .drop(countyZipDf.col("zip"))
-        .drop(countyZipDf.col("county"))
-        .drop("countyId");
-    institutionPerCountyDf.sample(0.1).show(3, false);
-    institutionPerCountyDf.printSchema();
+//    institutionPerCountyDf = institutionPerCountyDf
+//        .drop(countyZipDf.col("zip"))
+//        .drop(countyZipDf.col("county"))
+//        .drop("countyId");
+//    institutionPerCountyDf.sample(0.9).show(10, false);
+//    institutionPerCountyDf.printSchema();
 
     // A little more
     // @formatter:off
