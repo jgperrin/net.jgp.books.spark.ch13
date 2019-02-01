@@ -1,7 +1,9 @@
 package net.jgp.books.sparkInAction.ch12.lab940AllJoins;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
@@ -9,15 +11,11 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
-import static org.apache.spark.sql.functions.explode;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * All joins in a single app, inspired by
  * https://stackoverflow.com/questions/45990633/what-are-the-various-join-types-in-spark.
+ * 
+ * Used in Spark in Action 2e, http://jgp.net/sia
  * 
  * @author jgp
  */
@@ -42,11 +40,6 @@ public class AllJoinsApp {
         .appName("Processing of invoices")
         .master("local")
         .getOrCreate();
-
-    // val r1 = Seq(Row(1, "A1"), Row(2, "A2"), Row(3, "A3"), Row(4,
-    // "A4")).toDS()
-    // val r2 = Seq(Row(3, "A3"), Row(4, "A4"), Row(4, "A4_1"), Row(5,
-    // "A5"), Row(6, "A6")).toDS()
 
     StructType schema = DataTypes.createStructType(new StructField[] {
         DataTypes.createStructField(
@@ -89,11 +82,6 @@ public class AllJoinsApp {
         "left_anti" // v2.1.1
         };
 
-    // joinTypes foreach {joinType =>
-    // println(s"${joinType.toUpperCase()} JOIN")
-    // r1.join(right = r2, usingColumns = Seq("id"), joinType =
-    // joinType).orderBy("id").show()
-    // }
     for (String joinType : joinTypes) {
       System.out.println(joinType.toUpperCase() + " JOIN");
       Dataset<Row> df = dfLeft.join(
