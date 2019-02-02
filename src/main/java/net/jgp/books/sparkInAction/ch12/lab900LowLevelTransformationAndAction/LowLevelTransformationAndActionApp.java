@@ -55,6 +55,7 @@ public class LowLevelTransformationAndActionApp implements Serializable {
   }
 
   /**
+   * Returns a substring of the values in the id2 column.
    * 
    * @author jgp
    */
@@ -86,8 +87,13 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     }
   }
 
-  private final class SmallCountiesUsingFilter implements FilterFunction<
-      Row> {
+  /**
+   * Filters on counties with less than 30,000 inhabitants.
+   * 
+   * @author jgp
+   */
+  private final class SmallCountiesUsingFilter
+      implements FilterFunction<Row> {
     private static final long serialVersionUID = 17392L;
 
     @Override
