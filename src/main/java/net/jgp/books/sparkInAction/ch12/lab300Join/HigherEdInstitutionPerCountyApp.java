@@ -7,9 +7,12 @@ import static org.apache.spark.sql.functions.split;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 
 /**
- * Performs a join between 3 datasets.
+ * Performs a join between 3 datasets to build a list of higher education
+ * institutions per county.
  * 
  * @author jgp
  */
@@ -21,7 +24,8 @@ public class HigherEdInstitutionPerCountyApp {
    * @param args
    */
   public static void main(String[] args) {
-    HigherEdInstitutionPerCountyApp app = new HigherEdInstitutionPerCountyApp();
+    HigherEdInstitutionPerCountyApp app =
+        new HigherEdInstitutionPerCountyApp();
     app.start();
   }
 
@@ -57,6 +61,7 @@ public class HigherEdInstitutionPerCountyApp {
         .withColumnRenamed("respop72017", "pop2017")
         .withColumnRenamed("GEO.id2", "countyId")
         .withColumnRenamed("GEO.display-label", "county");
+    System.out.println("Census data");
     censusDf.sample(0.1).show(3, false);
     censusDf.printSchema();
 
@@ -85,6 +90,7 @@ public class HigherEdInstitutionPerCountyApp {
             split(higherEdDf.col("zip_tmp3"), "-"));
     higherEdDf = higherEdDf
         .withColumn("zip", higherEdDf.col("zip_tmp4").getItem(0))
+        .withColumnRenamed("LocationName", "location")
         .drop("DapipId")
         .drop("OpeId")
         .drop("ParentName")
@@ -101,6 +107,7 @@ public class HigherEdInstitutionPerCountyApp {
         .drop("zip_tmp2")
         .drop("zip_tmp3")
         .drop("zip_tmp4");
+    System.out.println("Higher education institutions (DAPIP)");
     higherEdDf.sample(0.1).show(3, false);
     higherEdDf.printSchema();
 
@@ -116,29 +123,39 @@ public class HigherEdInstitutionPerCountyApp {
         .drop("bus_ratio")
         .drop("oth_ratio")
         .drop("tot_ratio");
+    System.out.println("Counties / ZIP Codes (HUD)");
     countyZipDf.sample(0.1).show(3, false);
-    countyZipDf.printSchema();
 
-    // Institution per county
-    Dataset<Row> institutionPerCountyDf = higherEdDf.join(
+    // Institutions per county id
+    Dataset<Row> institPerCountyDf = higherEdDf.join(
         countyZipDf,
         higherEdDf.col("zip").equalTo(countyZipDf.col("zip")),
-        "left_semi");
-//    institutionPerCountyDf = institutionPerCountyDf.join(
-//        censusDf,
-//        institutionPerCountyDf.col("county")
-//            .equalTo(censusDf.col("countyId")),
-//        "left");
-    //institutionPerCountyDf.sample(false, 0.9).show(20, false);
-    institutionPerCountyDf.show(20, false);
-    institutionPerCountyDf.printSchema();
+        "left");
+    System.out
+        .println("Higher education institutions left-joined with HUD");
+    institPerCountyDf.filter(higherEdDf.col("zip").equalTo(27517)).show(20,
+        false);
+    institPerCountyDf.printSchema();
 
-//    institutionPerCountyDf = institutionPerCountyDf
-//        .drop(countyZipDf.col("zip"))
-//        .drop(countyZipDf.col("county"))
-//        .drop("countyId");
-//    institutionPerCountyDf.sample(0.9).show(10, false);
-//    institutionPerCountyDf.printSchema();
+    // Institutions per county name
+    institPerCountyDf = institPerCountyDf.join(
+        censusDf,
+        institPerCountyDf.col("county").equalTo(censusDf.col("countyId")),
+        "inner");
+    System.out.println(
+        "Higher education institutions and county id with inner-joined with census");
+    institPerCountyDf.filter(higherEdDf.col("zip").equalTo(27517)).show(20,
+        false);
+
+    // Final clean up
+    institPerCountyDf = institPerCountyDf
+        .drop(higherEdDf.col("zip"))
+        .drop(countyZipDf.col("county"))
+        .drop("countyId")
+        .distinct();
+    System.out.println("Final list");
+    institPerCountyDf.show(200, false);
+    System.out.println("The combined list has " + institPerCountyDf.count() + " elements.");
 
     // A little more
     // @formatter:off

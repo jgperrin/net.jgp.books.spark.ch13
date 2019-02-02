@@ -1,4 +1,4 @@
-package net.jgp.books.sparkInAction.ch12.lab940AllJoins;
+package net.jgp.books.sparkInAction.ch12.lab941AllJoinsDifferentDataTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ import org.apache.spark.sql.types.StructType;
  * 
  * @author jgp
  */
-public class AllJoinsApp {
+public class AllJoinsDifferentDataTypesApp {
 
   /**
    * main() is your entry point to the application.
@@ -27,7 +27,7 @@ public class AllJoinsApp {
    * @param args
    */
   public static void main(String[] args) {
-    AllJoinsApp app = new AllJoinsApp();
+    AllJoinsDifferentDataTypesApp app = new AllJoinsDifferentDataTypesApp();
     app.start();
   }
 
@@ -37,11 +37,11 @@ public class AllJoinsApp {
   private void start() {
     // Creates a session on a local master
     SparkSession spark = SparkSession.builder()
-        .appName("All joins!")
+        .appName("Processing of invoices")
         .master("local")
         .getOrCreate();
 
-    StructType schema = DataTypes.createStructType(new StructField[] {
+    StructType schemaLeft = DataTypes.createStructType(new StructField[] {
         DataTypes.createStructField(
             "id",
             DataTypes.IntegerType,
@@ -51,21 +51,31 @@ public class AllJoinsApp {
             DataTypes.StringType,
             false) });
 
+    StructType schemaRight = DataTypes.createStructType(new StructField[] {
+        DataTypes.createStructField(
+            "idx",
+            DataTypes.StringType,
+            false),
+        DataTypes.createStructField(
+            "value",
+            DataTypes.StringType,
+            false) });
+    
     List<Row> rows = new ArrayList<Row>();
     rows.add(RowFactory.create(1, "A1"));
     rows.add(RowFactory.create(2, "A2"));
     rows.add(RowFactory.create(3, "A3"));
     rows.add(RowFactory.create(4, "A4"));
-    Dataset<Row> dfLeft = spark.createDataFrame(rows, schema);
+    Dataset<Row> dfLeft = spark.createDataFrame(rows, schemaLeft);
     dfLeft.show();
 
     rows = new ArrayList<Row>();
-    rows.add(RowFactory.create(3, "A3"));
-    rows.add(RowFactory.create(4, "A4"));
-    rows.add(RowFactory.create(4, "A4_1"));
-    rows.add(RowFactory.create(5, "A5"));
-    rows.add(RowFactory.create(6, "A6"));
-    Dataset<Row> dfRight = spark.createDataFrame(rows, schema);
+    rows.add(RowFactory.create("3", "A3"));
+    rows.add(RowFactory.create("4", "A4"));
+    rows.add(RowFactory.create("4", "A4_1"));
+    rows.add(RowFactory.create("5", "A5"));
+    rows.add(RowFactory.create("6", "A6"));
+    Dataset<Row> dfRight = spark.createDataFrame(rows, schemaRight);
     dfRight.show();
 
     String[] joinTypes = new String[] { 
@@ -86,7 +96,7 @@ public class AllJoinsApp {
       System.out.println(joinType.toUpperCase() + " JOIN");
       Dataset<Row> df = dfLeft.join(
           dfRight, 
-          dfLeft.col("id").equalTo(dfRight.col("id")), 
+          dfLeft.col("id").equalTo(dfRight.col("idx")), 
           joinType);
       df.orderBy(dfLeft.col("id")).show();
     }
