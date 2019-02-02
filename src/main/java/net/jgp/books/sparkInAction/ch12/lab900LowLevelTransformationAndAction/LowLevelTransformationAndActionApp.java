@@ -20,7 +20,10 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 /**
- * Low level transformations.
+ * Low level transformations and actions.
+ * 
+ * Those methods and classes are described in detailed in appendix T of the
+ * book.
  * 
  * @author jgp
  */
@@ -105,6 +108,11 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     }
   }
 
+  /**
+   * 
+   * @author jgp
+   *
+   */
   public class CountyStateExtractorUsingFlatMap
       implements FlatMapFunction<Row, String> {
     private static final long serialVersionUID = 63784L;
@@ -116,6 +124,11 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     }
   }
 
+  /**
+   * 
+   * @author jgp
+   *
+   */
   public class FirstCountyAndStateOfPartitionUsingMapPartitions
       implements MapPartitionsFunction<Row, String> {
     private static final long serialVersionUID = -62694L;
@@ -128,7 +141,13 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     }
   }
 
-  private final class ForeachFunctionExample
+  /**
+   * Displays the population of a county for the first 10 counties in the
+   * dataset.
+   * 
+   * @author jgp
+   */
+  private final class DisplayCountyPopulationForeach
       implements ForeachFunction<Row> {
     private static final long serialVersionUID = 14738L;
     private int count = 0;
@@ -136,8 +155,10 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     @Override
     public void call(Row r) throws Exception {
       if (count < 10) {
-        System.out.println(r.getAs("Geography").toString() + " had "
-            + r.getAs("real2010").toString() + " inhabitants in 2010.");
+        System.out.println(r.getAs("Geography").toString()
+            + " had "
+            + r.getAs("real2010").toString()
+            + " inhabitants in 2010.");
       }
       count++;
     }
@@ -153,6 +174,7 @@ public class LowLevelTransformationAndActionApp implements Serializable {
         .master("local")
         .getOrCreate();
 
+    // Data ingestion and preparation
     Dataset<Row> df = spark.read().format("csv")
         .option("header", "true")
         .option("inferSchema", "true")
@@ -183,6 +205,7 @@ public class LowLevelTransformationAndActionApp implements Serializable {
             split(df.col("Geography"), ", ").getItem(0));
     countyStateDf.show(5);
 
+    // ---------------
     // Transformations
     // ---------------
 
@@ -224,13 +247,6 @@ public class LowLevelTransformationAndActionApp implements Serializable {
             Encoders.STRING());
     groupByKeyDs.count().show(5);
 
-    // reduce
-    System.out.println("reduce()");
-    String listOfCountyStateDs = countyStateDs
-        .reduce(
-            new CountyStateConcatenatorUsingReduce());
-    System.out.println(listOfCountyStateDs);
-
     // dropDuplicates
     System.out.println("dropDuplicates()");
     Dataset<Row> stateDf = countyStateDf.dropDuplicates("State");
@@ -242,7 +258,19 @@ public class LowLevelTransformationAndActionApp implements Serializable {
     Dataset<Row> countCountDf = countyStateDf.agg(count("County"));
     countCountDf.show(5);
 
-    // Action
-    // df.foreach(new ForeachFunctionExample());
+    // ---------------
+    // Actions
+    // ---------------
+
+    // reduce
+    System.out.println("reduce()");
+    String listOfCountyStateDs = countyStateDs
+        .reduce(
+            new CountyStateConcatenatorUsingReduce());
+    System.out.println(listOfCountyStateDs);
+
+    // foreach
+    System.out.println("foreach()");
+    df.foreach(new DisplayCountyPopulationForeach());
   }
 }
