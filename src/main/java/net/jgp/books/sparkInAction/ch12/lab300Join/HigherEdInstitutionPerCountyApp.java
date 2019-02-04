@@ -7,8 +7,6 @@ import static org.apache.spark.sql.functions.split;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.DataType;
-import org.apache.spark.sql.types.DataTypes;
 
 /**
  * Performs a join between 3 datasets to build a list of higher education
@@ -75,21 +73,25 @@ public class HigherEdInstitutionPerCountyApp {
         .load("data/dapip/InstitutionCampus.csv");
     higherEdDf = higherEdDf
         .filter("LocationType = 'Institution'")
-        .withColumn("zip_tmp", split(higherEdDf.col("Address"), " "));
-    higherEdDf = higherEdDf
-        .withColumn("zip_tmp2", size(higherEdDf.col("zip_tmp")));
+        .withColumn(
+            "addressElements",
+            split(higherEdDf.col("Address"), " "));
     higherEdDf = higherEdDf
         .withColumn(
-            "zip_tmp3",
+            "addressElementCount",
+            size(higherEdDf.col("addressElements")));
+    higherEdDf = higherEdDf
+        .withColumn(
+            "zip9",
             element_at(
-                higherEdDf.col("zip_tmp"),
-                higherEdDf.col("zip_tmp2")));
+                higherEdDf.col("addressElements"),
+                higherEdDf.col("addressElementCount")));
     higherEdDf = higherEdDf
         .withColumn(
-            "zip_tmp4",
-            split(higherEdDf.col("zip_tmp3"), "-"));
+            "splitZipCode",
+            split(higherEdDf.col("zip9"), "-"));
     higherEdDf = higherEdDf
-        .withColumn("zip", higherEdDf.col("zip_tmp4").getItem(0))
+        .withColumn("zip", higherEdDf.col("splitZipCode").getItem(0))
         .withColumnRenamed("LocationName", "location")
         .drop("DapipId")
         .drop("OpeId")
@@ -103,10 +105,10 @@ public class HigherEdInstitutionPerCountyApp {
         .drop("AdminEmail")
         .drop("Fax")
         .drop("UpdateDate")
-        .drop("zip_tmp")
-        .drop("zip_tmp2")
-        .drop("zip_tmp3")
-        .drop("zip_tmp4");
+        .drop("zip9")
+        .drop("addressElements")
+        .drop("addressElementCount")
+        .drop("splitZipCode");
     System.out.println("Higher education institutions (DAPIP)");
     higherEdDf.sample(0.1).show(3, false);
     higherEdDf.printSchema();
@@ -125,6 +127,7 @@ public class HigherEdInstitutionPerCountyApp {
         .drop("tot_ratio");
     System.out.println("Counties / ZIP Codes (HUD)");
     countyZipDf.sample(0.1).show(3, false);
+    countyZipDf.printSchema();
 
     // Institutions per county id
     Dataset<Row> institPerCountyDf = higherEdDf.join(
@@ -144,8 +147,12 @@ public class HigherEdInstitutionPerCountyApp {
         "inner");
     System.out.println(
         "Higher education institutions and county id with inner-joined with census");
-    institPerCountyDf.filter(higherEdDf.col("zip").equalTo(27517)).show(20,
-        false);
+    institPerCountyDf
+        .filter(higherEdDf.col("zip").equalTo(27517))
+        .show(20, false);
+    institPerCountyDf
+        .filter(higherEdDf.col("zip").equalTo(2138))
+        .show(20, false);
 
     // Final clean up
     institPerCountyDf = institPerCountyDf
@@ -155,7 +162,8 @@ public class HigherEdInstitutionPerCountyApp {
         .distinct();
     System.out.println("Final list");
     institPerCountyDf.show(200, false);
-    System.out.println("The combined list has " + institPerCountyDf.count() + " elements.");
+    System.out.println("The combined list has " + institPerCountyDf.count()
+        + " elements.");
 
     // A little more
     // @formatter:off
