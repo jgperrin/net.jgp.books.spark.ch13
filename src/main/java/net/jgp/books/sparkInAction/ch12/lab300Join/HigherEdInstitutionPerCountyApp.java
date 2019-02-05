@@ -133,18 +133,19 @@ public class HigherEdInstitutionPerCountyApp {
     Dataset<Row> institPerCountyDf = higherEdDf.join(
         countyZipDf,
         higherEdDf.col("zip").equalTo(countyZipDf.col("zip")),
-        "left");
-    System.out
-        .println("Higher education institutions left-joined with HUD");
-    institPerCountyDf.filter(higherEdDf.col("zip").equalTo(27517)).show(20,
-        false);
+        "inner");
+    System.out.println(
+        "Higher education institutions left-joined with HUD");
+    institPerCountyDf
+        .filter(higherEdDf.col("zip").equalTo(27517))
+        .show(20, false);
     institPerCountyDf.printSchema();
 
     // Institutions per county name
     institPerCountyDf = institPerCountyDf.join(
         censusDf,
         institPerCountyDf.col("county").equalTo(censusDf.col("countyId")),
-        "inner");
+        "left");
     System.out.println(
         "Higher education institutions and county id with inner-joined with census");
     institPerCountyDf
