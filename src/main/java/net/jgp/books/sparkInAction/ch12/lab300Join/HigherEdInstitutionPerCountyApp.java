@@ -141,19 +141,31 @@ public class HigherEdInstitutionPerCountyApp {
         .show(20, false);
     institPerCountyDf.printSchema();
 
+    // --------------------------
+    // - "Temporary" drop columns
+
+    // Note:
+    // This block is not doing anything except illustrating that the drop()
+    // method needs to be used carefully.
+
+    // Dropping all zip columns
+    System.out.println(
+        "Attempt to drop the zip column");
+    institPerCountyDf.drop("zip").sample(0.1).show(3, false);
+
+    // Dropping the zip column inherited from the higher ed dataframe
+    System.out.println(
+        "Attempt to drop the zip column");
+    institPerCountyDf
+        .drop(higherEdDf.col("zip"))
+        .sample(0.1).show(3, false);
+    // --------------------------
+
     // Institutions per county name
     institPerCountyDf = institPerCountyDf.join(
         censusDf,
         institPerCountyDf.col("county").equalTo(censusDf.col("countyId")),
         "left");
-    System.out.println(
-        "Higher education institutions and county id with inner-joined with census");
-    institPerCountyDf
-        .filter(higherEdDf.col("zip").equalTo(27517))
-        .show(20, false);
-    institPerCountyDf
-        .filter(higherEdDf.col("zip").equalTo(2138))
-        .show(20, false);
 
     // Final clean up
     institPerCountyDf = institPerCountyDf
@@ -161,6 +173,22 @@ public class HigherEdInstitutionPerCountyApp {
         .drop(countyZipDf.col("county"))
         .drop("countyId")
         .distinct();
+
+    System.out.println(
+        "Higher education institutions in ZIP Code 27517 (NC)");
+    institPerCountyDf
+        .filter(higherEdDf.col("zip").equalTo(27517))
+        .show(20, false);
+
+    System.out.println(
+        "Higher education institutions in ZIP Code 02138 (MA)");
+    institPerCountyDf
+        .filter(higherEdDf.col("zip").equalTo(2138))
+        .show(20, false);
+
+    System.out.println("Institutions with improper counties");
+    institPerCountyDf.filter("county is null").show(200, false);
+
     System.out.println("Final list");
     institPerCountyDf.show(200, false);
     System.out.println("The combined list has " + institPerCountyDf.count()
