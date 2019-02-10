@@ -36,7 +36,7 @@ public class JsonShipmentDisplayApp {
         .format("json")
         .option("multiline", true)
         .load("data/json/shipment.json");
-    
+
     // Shows at most 5 rows from the dataframe (there's only one anyway)
     df.show(5, 16);
     df.printSchema();

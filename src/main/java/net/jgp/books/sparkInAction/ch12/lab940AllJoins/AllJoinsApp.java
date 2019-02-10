@@ -68,7 +68,7 @@ public class AllJoinsApp {
     Dataset<Row> dfRight = spark.createDataFrame(rows, schema);
     dfRight.show();
 
-    String[] joinTypes = new String[] { 
+    String[] joinTypes = new String[] {
         "inner", // v2.0.0. default
         "cross", // v2.2.0
         "outer", // v2.0.0
@@ -80,13 +80,13 @@ public class AllJoinsApp {
         "right_outer", // v2.0.0
         "left_semi", // v2.0.0, was leftsemi before v2.1.1
         "left_anti" // v2.1.1
-        };
+    };
 
     for (String joinType : joinTypes) {
       System.out.println(joinType.toUpperCase() + " JOIN");
       Dataset<Row> df = dfLeft.join(
-          dfRight, 
-          dfLeft.col("id").equalTo(dfRight.col("id")), 
+          dfRight,
+          dfLeft.col("id").equalTo(dfRight.col("id")),
           joinType);
       df.orderBy(dfLeft.col("id")).show();
     }
