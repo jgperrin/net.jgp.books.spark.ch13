@@ -2,11 +2,6 @@
 
 # Datasets
 
-* [census](census/README.md): United States Census data
-* [sfo](sfo/README.md): San Francisco international airport passenger data
-
-
-All examples are in Java.
 
 ---
 
