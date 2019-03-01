@@ -1,4 +1,4 @@
-package net.jgp.books.sparkInAction.ch13.lab100_xx;
+package net.jgp.books.spark.ch13.lab100_xx;
 
 import static org.apache.spark.sql.functions.expr;
 import static org.apache.spark.sql.functions.split;

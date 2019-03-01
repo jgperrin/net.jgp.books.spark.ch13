@@ -1,0 +1,7 @@
+id|batch|batch_id|session_name|time|value
+001|abc|098|course-I|1551409926133|2.3
+001|abc|098|course-I|1551404747843|7.3
+001|abc|098|course-I|1551409934220|6.3
+002|def|097|course-II|1551409926453|2.3
+002|def|097|course-II|1551404747843|7.3
+002|def|097|course-II|1551409934220|6.3
