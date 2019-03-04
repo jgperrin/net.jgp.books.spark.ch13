@@ -40,7 +40,8 @@ public class MaxValueAggregationApp {
 
     // Performs the aggregation, grouping on columns id, batch_id, and
     // session_name
-    Dataset<Row> maxValuesDf = rawDf.select("*")
+    Dataset<Row> maxValuesDf = rawDf
+        .select("*")
         .groupBy(col("id"), col("batch_id"), col("session_name"))
         .agg(max("time"));
     maxValuesDf.show(5);
