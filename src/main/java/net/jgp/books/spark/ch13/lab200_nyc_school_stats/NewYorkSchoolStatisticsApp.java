@@ -1,4 +1,4 @@
-package net.jgp.books.spark.ch13.lab100_nyc_school_stats;
+package net.jgp.books.spark.ch13.lab200_nyc_school_stats;
 
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.length;
@@ -80,8 +80,8 @@ public class NewYorkSchoolStatisticsApp {
             DataTypes.IntegerType,
             false) });
 
-    // Reads a CSV file with header, called books.csv, stores it in a
-    // dataframe
+    // Reads a bunch of CSV file with header (ignored by the schema), called
+    // 20*.csv, stores it in a dataframe
     Dataset<Row> df = spark.read().format("csv")
         .option("header", "true")
         .option("dateFormat", "yyyyMMdd")
