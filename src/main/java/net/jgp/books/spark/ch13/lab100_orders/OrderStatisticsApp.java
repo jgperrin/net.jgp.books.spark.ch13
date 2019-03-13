@@ -1,18 +1,14 @@
 package net.jgp.books.spark.ch13.lab100_orders;
 
-import static org.apache.spark.sql.functions.*;
+import static org.apache.spark.sql.functions.avg;
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.sum;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.jgp.books.spark.ch13.lab300_udaf.QualityControlAggregationFunction;
 
 /**
  * Orders analytics.
@@ -37,7 +33,6 @@ public class OrderStatisticsApp {
   /**
    * The processing code.
    */
-
   private void start() {
     // Creates a session on a local master
     SparkSession spark = SparkSession.builder()
@@ -55,7 +50,7 @@ public class OrderStatisticsApp {
     // Calculating the average enrollment for each school
     df = df
         .groupBy(col("firstName"), col("lastName"), col("state"))
-        .agg(sum("quantity"), avg("revenue"));
+        .agg(sum("quantity"), sum("revenue"), avg("revenue"));
     df.show(20);
   }
 }

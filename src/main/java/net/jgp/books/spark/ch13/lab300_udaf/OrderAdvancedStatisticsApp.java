@@ -51,7 +51,7 @@ public class OrderAdvancedStatisticsApp {
         .getOrCreate();
 
     spark.udf().register("conditionalSum",
-        new QualityControlAggregationFunction());
+        new QualityControlUdaf());
 
     // Reads a CSV file with header, called orders.csv, stores it in a
     // dataframe
