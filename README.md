@@ -5,7 +5,7 @@ The examples in this repository are support to the **[Spark in Action, 2nd editi
 Welcome to Spark with Java, chapter 13. This chapter is about **aggregates**.
 
 Datasets can be downloaded from:
-* Historical daily attendance By school from 2006 to now, from the [open data platform from the city of New York][1] at [https://data.cityofnewyork.us][1].
+* Historical daily attendance by school from 2006 to now, from the [open data platform from the city of New York][1] at [https://data.cityofnewyork.us][1].
   + [2018-2019](https://data.cityofnewyork.us/Education/2018-2019-Daily-Attendance/x3bb-kg5j)
   + [2015-2018](https://data.cityofnewyork.us/Education/2015-2018-Historical-Daily-Attendance-By-School/3y5p-x48f)
   + [2012-2015](https://data.cityofnewyork.us/Education/2012-2015-Historical-Daily-Attendance-By-School/pffu-gbfi)

@@ -1,4 +1,4 @@
-package net.jgp.books.spark.ch13.lab300_udaf;
+package net.jgp.books.spark.ch13.lab400_udaf;
 
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.length;

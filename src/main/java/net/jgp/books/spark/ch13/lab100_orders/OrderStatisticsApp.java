@@ -25,8 +25,7 @@ public class OrderStatisticsApp {
    * @param args
    */
   public static void main(String[] args) {
-    OrderStatisticsApp app =
-        new OrderStatisticsApp();
+    OrderStatisticsApp app = new OrderStatisticsApp();
     app.start();
   }
 
@@ -47,10 +46,24 @@ public class OrderStatisticsApp {
         .option("inferSchema", true)
         .load("data/orders/orders.csv");
 
-    // Calculating the average enrollment for each school
-    df = df
+    // Calculating the orders info using the dataframe API
+    Dataset<Row> apiDf = df
         .groupBy(col("firstName"), col("lastName"), col("state"))
         .agg(sum("quantity"), sum("revenue"), avg("revenue"));
-    df.show(20);
+    apiDf.show(20);
+    
+    // Calculating the orders info using SparkSQL
+    df.createOrReplaceTempView("orders");
+    String sqlStatement = "SELECT " + 
+        "    firstName, " + 
+        "    lastName, " + 
+        "    state, " + 
+        "    SUM(quantity), " + 
+        "    SUM(revenue), " + 
+        "    AVG(revenue) " + 
+        "  FROM orders " + 
+        "  GROUP BY firstName, lastName, state";
+    Dataset<Row> sqlDf = spark.sql(sqlStatement);
+    sqlDf.show(20);
   }
 }
