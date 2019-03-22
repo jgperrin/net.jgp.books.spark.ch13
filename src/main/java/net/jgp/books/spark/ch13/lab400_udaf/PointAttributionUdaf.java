@@ -17,14 +17,14 @@ import org.slf4j.LoggerFactory;
  * 
  * @author jgp
  */
-public class QualityControlUdaf
+public class PointAttributionUdaf
     extends UserDefinedAggregateFunction {
   private static Logger log =
-      LoggerFactory.getLogger(QualityControlUdaf.class);
+      LoggerFactory.getLogger(PointAttributionUdaf.class);
 
   private static final long serialVersionUID = -66830400L;
 
-  private static final double MAX_POINT_PER_ORDER = 3.0;
+  public static final int MAX_POINT_PER_ORDER = 3;
 
   /**
    * Describes the schema of input sent to the UDAF. Spark UDAFs can operate
@@ -34,7 +34,7 @@ public class QualityControlUdaf
   public StructType inputSchema() {
     List<StructField> inputFields = new ArrayList<>();
     inputFields.add(
-        DataTypes.createStructField("c0", DataTypes.DoubleType, true));
+        DataTypes.createStructField("c0", DataTypes.IntegerType, true));
     return DataTypes.createStructType(inputFields);
   }
 
@@ -45,7 +45,7 @@ public class QualityControlUdaf
   public StructType bufferSchema() {
     List<StructField> bufferFields = new ArrayList<>();
     bufferFields.add(
-        DataTypes.createStructField("sum", DataTypes.DoubleType, true));
+        DataTypes.createStructField("sum", DataTypes.IntegerType, true));
     return DataTypes.createStructType(bufferFields);
   }
 
@@ -54,7 +54,7 @@ public class QualityControlUdaf
    */
   @Override
   public DataType dataType() {
-    return DataTypes.DoubleType;
+    return DataTypes.IntegerType;
   }
 
   /**
@@ -76,9 +76,10 @@ public class QualityControlUdaf
    */
   @Override
   public void initialize(MutableAggregationBuffer buffer) {
+    log.trace("-> initialize() - buffer as {} row(s)", buffer.length());
     buffer.update(
         0, // column
-        0.0); // value
+        0); // value
     // You can repeat that for the number of columns you have in your buffer
   }
 
@@ -88,27 +89,40 @@ public class QualityControlUdaf
    */
   @Override
   public void update(MutableAggregationBuffer buffer, Row input) {
-    log.debug("-> update(), in put row has {} args", input.length());
+    log.trace("-> update(), input row has {} args", input.length());
     if (input.isNullAt(0)) {
-      log.debug("Value passed is null.");
+      log.trace("Value passed is null.");
       return;
     }
-    double inputValue = input.getDouble(0);
-    log.debug("value passed to update() is {}", inputValue);
+    log.trace("-> update({}, {})", buffer.getInt(0), input.getInt(0));
+
+    // Apply your business rule, could be in an external function/service.
+    int initialValue = buffer.getInt(0);
+    int inputValue = input.getInt(0);
+    int outputValue = 0;
     if (inputValue < MAX_POINT_PER_ORDER) {
-      buffer.update(0, inputValue);
+      outputValue = inputValue;
     } else {
-      buffer.update(0, MAX_POINT_PER_ORDER);
+      outputValue = MAX_POINT_PER_ORDER;
     }
+    outputValue += initialValue;
+    
+    log.trace(
+        "Value passed to update() is {}, this will grant {} points",
+        inputValue,
+        outputValue);
+    buffer.update(0, outputValue);
   }
 
   @Override
   public void merge(MutableAggregationBuffer buffer, Row row) {
-    buffer.update(0, buffer.getDouble(0) + row.getDouble(0));
+    log.trace("-> merge({}, {})", buffer.getInt(0), row.getInt(0));
+    buffer.update(0, buffer.getInt(0) + row.getInt(0));
   }
 
   @Override
-  public Double evaluate(Row row) {
-    return row.getDouble(0);
+  public Integer evaluate(Row row) {
+    log.trace("-> evaluate({})", row.getInt(0));
+    return row.getInt(0);
   }
 }

@@ -1,22 +1,14 @@
 package net.jgp.books.spark.ch13.lab400_udaf;
 
-import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.length;
-import static org.apache.spark.sql.functions.max;
-import static org.apache.spark.sql.functions.min;
-import static org.apache.spark.sql.functions.sum;
-import static org.apache.spark.sql.functions.lit;
-import static org.apache.spark.sql.functions.avg;
 import static org.apache.spark.sql.functions.callUDF;
-import static org.apache.spark.sql.functions.expr;
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.sum;
+
+import static org.apache.spark.sql.functions.*;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +17,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author jgp
  */
-public class OrderAdvancedStatisticsApp {
+public class PointsPerOrderApp {
   private static Logger log =
-      LoggerFactory.getLogger(OrderAdvancedStatisticsApp.class);
+      LoggerFactory.getLogger(PointsPerOrderApp.class);
 
   /**
    * main() is your entry point to the application.
@@ -35,8 +27,8 @@ public class OrderAdvancedStatisticsApp {
    * @param args
    */
   public static void main(String[] args) {
-    OrderAdvancedStatisticsApp app =
-        new OrderAdvancedStatisticsApp();
+    PointsPerOrderApp app =
+        new PointsPerOrderApp();
     app.start();
   }
 
@@ -50,8 +42,7 @@ public class OrderAdvancedStatisticsApp {
         .master("local[*]")
         .getOrCreate();
 
-    spark.udf().register("conditionalSum",
-        new QualityControlUdaf());
+    spark.udf().register("pointAttribution", new PointAttributionUdaf());
 
     // Reads a CSV file with header, called orders.csv, stores it in a
     // dataframe
@@ -60,13 +51,25 @@ public class OrderAdvancedStatisticsApp {
         .option("inferSchema", true)
         .load("data/orders/orders.csv");
 
-    // Calculating the average enrollment for each school
-    df = df
+    // Calculating the points for each customer, not each order
+    Dataset<Row> pointDf = df
         .groupBy(col("firstName"), col("lastName"), col("state"))
         .agg(
             sum("quantity"),
-            callUDF("conditionalSum", col("quantity")),
-            avg("revenue"));
-    df.show(20);
+            callUDF("pointAttribution", col("quantity")).as("point"));
+    pointDf.show(20);
+
+    // Alternate way: calculate order by order
+    int max = PointAttributionUdaf.MAX_POINT_PER_ORDER;
+    Dataset<Row> eachOrderDf = df
+        .withColumn(
+            "point",
+            when(col("quantity").$greater(max), max)
+                .otherwise(col("quantity")))
+        .groupBy(col("firstName"), col("lastName"), col("state"))
+        .agg(
+            sum("quantity"),
+            sum("point").as("point"));
+    eachOrderDf.show(20);
   }
 }
