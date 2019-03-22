@@ -3,8 +3,7 @@ package net.jgp.books.spark.ch13.lab400_udaf;
 import static org.apache.spark.sql.functions.callUDF;
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.sum;
-
-import static org.apache.spark.sql.functions.*;
+import static org.apache.spark.sql.functions.when;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -27,8 +26,7 @@ public class PointsPerOrderApp {
    * @param args
    */
   public static void main(String[] args) {
-    PointsPerOrderApp app =
-        new PointsPerOrderApp();
+    PointsPerOrderApp app = new PointsPerOrderApp();
     app.start();
   }
 
@@ -38,7 +36,7 @@ public class PointsPerOrderApp {
   private void start() {
     // Creates a session on a local master
     SparkSession spark = SparkSession.builder()
-        .appName("Orders analytics")
+        .appName("Orders loyalty point")
         .master("local[*]")
         .getOrCreate();
 
