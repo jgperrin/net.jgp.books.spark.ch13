@@ -133,15 +133,12 @@ public class NewYorkSchoolStatisticsApp {
         .groupBy(col("schoolId"), col("schoolYear"))
         .agg(
             max("enrolled").alias("enrolled"),
-            avg("absent").as("absent"))
-        .orderBy("schoolId", "schoolYear");
+            avg("absent").as("absent"));
     absenteeRatioDf = absenteeRatioDf
-        .groupBy(col("schoolId"), col("enrolled"), col("absent"))
+        .groupBy(col("schoolId"))
         .agg(
             avg("enrolled").as("avg_enrolled"),
             avg("absent").as("avg_absent"))
-        .drop("enrolled")
-        .drop("absent")
         .withColumn("%", expr("avg_absent / avg_enrolled * 100"))
         .filter(col("avg_enrolled").$greater(10))
         .orderBy("%", "avg_enrolled");
