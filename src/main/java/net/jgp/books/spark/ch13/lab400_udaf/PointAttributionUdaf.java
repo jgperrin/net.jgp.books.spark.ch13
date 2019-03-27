@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Calculates loyalty points using a UDAF
  * 
  * @author jgp
  */
@@ -34,7 +35,7 @@ public class PointAttributionUdaf
   public StructType inputSchema() {
     List<StructField> inputFields = new ArrayList<>();
     inputFields.add(
-        DataTypes.createStructField("c0", DataTypes.IntegerType, true));
+        DataTypes.createStructField("_c0", DataTypes.IntegerType, true));
     return DataTypes.createStructType(inputFields);
   }
 
@@ -59,11 +60,11 @@ public class PointAttributionUdaf
 
   /**
    * Describes whether the UDAF is deterministic or not.
-   * 
-   * Since, Spark executes by splitting data, it processes the chunks
-   * separately and combining them. If the UDAF logic is such that the
-   * result is independent of the order in which data is processed and
-   * combined then the UDAF is deterministic.
+   *
+   * As Spark executes by splitting data, it processes the chunks separately
+   * and combining them. If the UDAF logic is such that the result is
+   * independent of the order in which data is processed and combined then
+   * the UDAF is deterministic.
    */
   @Override
   public boolean deterministic() {
@@ -73,6 +74,10 @@ public class PointAttributionUdaf
   /**
    * Initializes the buffer. This method can be called any number of times
    * of Spark during processing.
+   * 
+   * The contract should be that applying the merge function on two initial
+   * buffers should just return the initial buffer itself, i.e.
+   * `merge(initialBuffer, initialBuffer)` should equal `initialBuffer`.
    */
   @Override
   public void initialize(MutableAggregationBuffer buffer) {
@@ -80,7 +85,8 @@ public class PointAttributionUdaf
     buffer.update(
         0, // column
         0); // value
-    // You can repeat that for the number of columns you have in your buffer
+    // You can repeat that for the number of columns you have in your
+    // buffer
   }
 
   /**
@@ -106,7 +112,7 @@ public class PointAttributionUdaf
       outputValue = MAX_POINT_PER_ORDER;
     }
     outputValue += initialValue;
-    
+
     log.trace(
         "Value passed to update() is {}, this will grant {} points",
         inputValue,
@@ -114,12 +120,20 @@ public class PointAttributionUdaf
     buffer.update(0, outputValue);
   }
 
+  /**
+   * Merges two aggregation buffers and stores the updated buffer values
+   * back to buffer.
+   */
   @Override
   public void merge(MutableAggregationBuffer buffer, Row row) {
     log.trace("-> merge({}, {})", buffer.getInt(0), row.getInt(0));
     buffer.update(0, buffer.getInt(0) + row.getInt(0));
   }
 
+  /**
+   * Calculates the final result of this UDAF based on the given aggregation
+   * buffer.
+   */
   @Override
   public Integer evaluate(Row row) {
     log.trace("-> evaluate({})", row.getInt(0));
