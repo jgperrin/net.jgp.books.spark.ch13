@@ -1,4 +1,4 @@
-package net.jgp.books.spark.ch13.lab400_json_shipment;
+package net.jgp.books.spark.ch13.lab100_json_shipment;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;

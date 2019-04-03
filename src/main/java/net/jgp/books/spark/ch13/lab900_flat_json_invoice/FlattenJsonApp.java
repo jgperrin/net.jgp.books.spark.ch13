@@ -1,4 +1,4 @@
-package net.jgp.books.spark.ch13.lab910_flat_json_invoice;
+package net.jgp.books.spark.ch13.lab900_flat_json_invoice;
 
 import static org.apache.spark.sql.functions.explode;
 
@@ -23,8 +23,7 @@ public class FlattenJsonApp {
    * @param args
    */
   public static void main(String[] args) {
-    FlattenJsonApp app =
-        new FlattenJsonApp();
+    FlattenJsonApp app = new FlattenJsonApp();
     app.start();
   }
 
