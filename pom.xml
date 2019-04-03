@@ -16,6 +16,8 @@
 		<scala.version>2.11</scala.version>
 		<spark.version>2.4.0</spark.version>
 		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+		<!-- Only used for lab #910 -->
+		<postgresql.version>42.1.4</postgresql.version>
 	</properties>
 
 	<dependencies>
@@ -52,6 +54,13 @@
 					<artifactId>slf4j-simple</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<!-- Only used for lab #910 -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql.version}</version>
 		</dependency>
 
 		<dependency>

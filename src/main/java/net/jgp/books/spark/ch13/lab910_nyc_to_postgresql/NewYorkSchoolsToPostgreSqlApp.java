@@ -1,16 +1,14 @@
-package net.jgp.books.spark.ch13.lab300_nyc_school_stats;
+package net.jgp.books.spark.ch13.lab910_nyc_to_postgresql;
 
-import static org.apache.spark.sql.functions.avg;
 import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.expr;
-import static org.apache.spark.sql.functions.floor;
 import static org.apache.spark.sql.functions.lit;
-import static org.apache.spark.sql.functions.max;
 import static org.apache.spark.sql.functions.substring;
-import static org.apache.spark.sql.functions.sum;
+
+import java.util.Properties;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
@@ -23,9 +21,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author jgp
  */
-public class NewYorkSchoolStatisticsApp {
+public class NewYorkSchoolsToPostgreSqlApp {
   private static Logger log = LoggerFactory
-      .getLogger(NewYorkSchoolStatisticsApp.class);
+      .getLogger(NewYorkSchoolsToPostgreSqlApp.class);
 
   private SparkSession spark = null;
 
@@ -35,8 +33,8 @@ public class NewYorkSchoolStatisticsApp {
    * @param args
    */
   public static void main(String[] args) {
-    NewYorkSchoolStatisticsApp app =
-        new NewYorkSchoolStatisticsApp();
+    NewYorkSchoolsToPostgreSqlApp app =
+        new NewYorkSchoolsToPostgreSqlApp();
     app.start();
   }
 
@@ -44,110 +42,52 @@ public class NewYorkSchoolStatisticsApp {
    * The processing code.
    */
   private void start() {
+    long t0 = System.currentTimeMillis();
+
     // Creates a session on a local master
     spark = SparkSession.builder()
-        .appName("NYC schools analytics")
+        .appName("NYC schools to PostgreSQL")
         .master("local[*]")
         .getOrCreate();
 
-    Dataset<Row> masterDf =
+    long t1 = System.currentTimeMillis();
+
+    Dataset<Row> df =
         loadDataUsing2018Format("data/nyc_school_attendance/2018*.csv");
 
-    masterDf = masterDf.unionByName(
+    df = df.unionByName(
         loadDataUsing2015Format("data/nyc_school_attendance/2015*.csv"));
 
-    masterDf = masterDf.unionByName(
+    df = df.unionByName(
         loadDataUsing2006Format(
             "data/nyc_school_attendance/200*.csv",
             "data/nyc_school_attendance/2012*.csv"));
-    masterDf = masterDf.cache();
 
-    // Shows at most 5 rows from the dataframe - this is the dataframe we
-    // can use to build our aggregations on
-    log.debug("Dataset contains {} rows", masterDf.count());
-    masterDf.sample(.5).show(5);
-    masterDf.printSchema();
+    long t2 = System.currentTimeMillis();
 
-    // Unique schools
-    Dataset<Row> uniqueSchoolsDf = masterDf.select("schoolId").distinct();
-    log.debug("Dataset contains {} unique schools",
-        uniqueSchoolsDf.count());
+    String dbConnectionUrl = "jdbc:postgresql://localhost/spark_labs";
 
-    // Calculating the average enrollment for each school
-    Dataset<Row> averageEnrollmentDf = masterDf
-        .groupBy(col("schoolId"), col("schoolYear"))
-        .avg("enrolled", "present", "absent")
-        .orderBy("schoolId", "schoolYear");
-    log.info("Average enrollment for each school");
-    averageEnrollmentDf.show(20);
+    // Properties to connect to the database, the JDBC driver is part of our
+    // pom.xml
+    Properties prop = new Properties();
+    prop.setProperty("driver", "org.postgresql.Driver");
+    prop.setProperty("user", "jgp");
+    prop.setProperty("password", "Spark<3Java");
 
-    // Evolution of # of students in the schools
-    Dataset<Row> studentCountPerYearDf = averageEnrollmentDf
-        .withColumnRenamed("avg(enrolled)", "enrolled")
-        .groupBy(col("schoolYear"))
-        .agg(sum("enrolled").as("enrolled"))
-        .withColumn(
-            "enrolled",
-            floor("enrolled").cast(DataTypes.LongType))
-        .orderBy("schoolYear");
-    log.info("Evolution of # of students per year");
-    studentCountPerYearDf.show(20);
-    Row maxStudentRow = studentCountPerYearDf
-        .orderBy(col("enrolled").desc())
-        .first();
-    String year = maxStudentRow.getString(0);
-    long max = maxStudentRow.getLong(1);
-    log.debug(
-        "{} was the year with most students, "
-            + "the district served {} students.",
-        year, max);
+    // Write in a table called ch02
+    df.write()
+        .mode(SaveMode.Overwrite)
+        .jdbc(dbConnectionUrl, "ch13_nyc_schools", prop);
+    long t3 = System.currentTimeMillis();
 
-    // Evolution of # of students in the schools
-    Dataset<Row> relativeStudentCountPerYearDf = studentCountPerYearDf
-        .withColumn("max", lit(max))
-        .withColumn("delta", expr("max - enrolled"))
-        .drop("max")
-        .orderBy("schoolYear");
-    log.info("Variation on the enrollment from {}:", year);
-    relativeStudentCountPerYearDf.show(20);
+    log.info("Dataset contains {} rows, processed in {} ms.", df.count(),
+        (t3 - t0));
+    log.info("Spark init ... {} ms.", (t1 - t0));
+    log.info("Ingestion .... {} ms.", (t2 - t1));
+    log.info("Output ....... {} ms.", (t3 - t2));
+    df.sample(.5).show(5);
+    df.printSchema();
 
-    // Most enrolled per school for each year
-    Dataset<Row> maxEnrolledPerSchooldf = masterDf
-        .groupBy(col("schoolId"), col("schoolYear"))
-        .max("enrolled")
-        .orderBy("schoolId", "schoolYear");
-    log.info("Maximum enrollement per school and year");
-    maxEnrolledPerSchooldf.show(20);
-
-    // Min absent per school for each year
-    Dataset<Row> minAbsenteeDf = masterDf
-        .groupBy(col("schoolId"), col("schoolYear"))
-        .min("absent")
-        .orderBy("schoolId", "schoolYear");
-    log.info("Minimum absenteeism per school and year");
-    minAbsenteeDf.show(20);
-
-    // Min absent per school for each year, as a % of enrolled
-    Dataset<Row> absenteeRatioDf = masterDf
-        .groupBy(col("schoolId"), col("schoolYear"))
-        .agg(
-            max("enrolled").alias("enrolled"),
-            avg("absent").as("absent"));
-    absenteeRatioDf = absenteeRatioDf
-        .groupBy(col("schoolId"))
-        .agg(
-            avg("enrolled").as("avg_enrolled"),
-            avg("absent").as("avg_absent"))
-        .withColumn("%", expr("avg_absent / avg_enrolled * 100"))
-        .filter(col("avg_enrolled").$greater(10))
-        .orderBy("%", "avg_enrolled");
-    log.info("Schools with the least absenteeism");
-    absenteeRatioDf.show(5);
-
-    log.info("Schools with the most absenteeism");
-    absenteeRatioDf
-        .orderBy(col("%").desc())
-        .show(5);
   }
 
   /**
