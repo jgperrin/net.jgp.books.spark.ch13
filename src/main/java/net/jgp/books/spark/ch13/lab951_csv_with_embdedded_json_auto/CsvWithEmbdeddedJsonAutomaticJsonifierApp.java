@@ -1,4 +1,4 @@
-package net.jgp.books.spark.ch12.lab951_csv_with_embdedded_json_auto;
+package net.jgp.books.spark.ch13.lab951_csv_with_embdedded_json_auto;
 
 import static org.apache.spark.sql.functions.concat;
 import static org.apache.spark.sql.functions.explode;
