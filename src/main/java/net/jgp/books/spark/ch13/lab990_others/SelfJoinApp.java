@@ -64,7 +64,7 @@ public class SelfJoinApp {
         .groupBy(joinedDf.col("acct"))
         .agg(collect_list("bssn"), collect_list("name"));
     listDf.show(false);
-    
+
     Dataset<Row> setDf = joinedDf
         .groupBy(joinedDf.col("acct"))
         .agg(collect_set("bssn"), collect_set("name"));
