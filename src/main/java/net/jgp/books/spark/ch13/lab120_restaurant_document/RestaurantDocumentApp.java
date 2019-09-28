@@ -1,4 +1,4 @@
-package net.jgp.books.spark.ch13.lab420_restaurant_document;
+package net.jgp.books.spark.ch13.lab120_restaurant_document;
 
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.collect_list;
