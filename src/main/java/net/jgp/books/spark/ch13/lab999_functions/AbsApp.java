@@ -38,7 +38,7 @@ public class AbsApp {
         .load("data/functions/functions.csv");
 
     df = df.withColumn("abs", abs(col("val")));
-    
+
     df.show(5);
   }
 }
