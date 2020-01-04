@@ -14,11 +14,6 @@ import org.apache.spark.sql.SparkSession;
  */
 public class AsinApp {
 
-  /**
-   * main() is your entry point to the application.
-   * 
-   * @param args
-   */
   public static void main(String[] args) {
     AsinApp app = new AsinApp();
     app.start();

@@ -14,11 +14,6 @@ import org.apache.spark.sql.SparkSession;
  */
 public class AcosApp {
 
-  /**
-   * main() is your entry point to the application.
-   * 
-   * @param args
-   */
   public static void main(String[] args) {
     AcosApp app = new AcosApp();
     app.start();
