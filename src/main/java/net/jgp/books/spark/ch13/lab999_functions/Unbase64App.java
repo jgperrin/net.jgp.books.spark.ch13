@@ -31,7 +31,7 @@ public class Unbase64App {
         .getOrCreate();
 
     Dataset<Row> df = spark.read().format("csv")
-        .option("header", "true")
+        .option("header", true)
         .load("data/functions/strings.csv");
 
     System.out.println("Output as array of bytes:");

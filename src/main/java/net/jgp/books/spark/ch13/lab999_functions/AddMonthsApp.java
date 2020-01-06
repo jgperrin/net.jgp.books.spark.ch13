@@ -1,6 +1,6 @@
 package net.jgp.books.spark.ch13.lab999_functions;
 
-import static org.apache.spark.sql.functions.asin;
+import static org.apache.spark.sql.functions.add_months;
 import static org.apache.spark.sql.functions.col;
 
 import org.apache.spark.sql.Dataset;
@@ -8,14 +8,14 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 /**
- * asin function: inverse sine of a value in radians
+ * add_months function.
  * 
  * @author jgp
  */
-public class AsinApp {
+public class AddMonthsApp {
 
   public static void main(String[] args) {
-    AsinApp app = new AsinApp();
+    AddMonthsApp app = new AddMonthsApp();
     app.start();
   }
 
@@ -24,17 +24,21 @@ public class AsinApp {
    */
   private void start() {
     SparkSession spark = SparkSession.builder()
-        .appName("acos function")
+        .appName("abs function")
         .master("local[*]")
         .getOrCreate();
 
     Dataset<Row> df = spark.read().format("csv")
         .option("header", true)
-        .load("data/functions/trigo_arc.csv");
+        .option("imferSchema", true)
+        .load("data/functions/dates.csv");
 
-    df = df.withColumn("asin", asin(col("val")));
-    df = df.withColumn("asin_by_name", asin("val"));
+    df = df
+        .withColumn("add_months+2", add_months(col("date_time"), 2))
+        .withColumn("add_months+val",
+            add_months(col("date_time"), col("val")));
 
-    df.show();
+    df.show(5, false);
+    df.printSchema();
   }
 }

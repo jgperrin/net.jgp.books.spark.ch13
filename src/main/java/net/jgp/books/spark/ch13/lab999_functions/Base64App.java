@@ -29,7 +29,7 @@ public class Base64App {
         .getOrCreate();
 
     Dataset<Row> df = spark.read().format("csv")
-        .option("header", "true")
+        .option("header", true)
         .load("data/functions/strings.csv");
 
     df = df.withColumn("base64", base64(col("fname")));

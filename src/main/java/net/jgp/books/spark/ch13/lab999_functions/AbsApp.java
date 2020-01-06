@@ -29,7 +29,7 @@ public class AbsApp {
         .getOrCreate();
 
     Dataset<Row> df = spark.read().format("csv")
-        .option("header", "true")
+        .option("header", true)
         .load("data/functions/functions.csv");
 
     df = df.withColumn("abs", abs(col("val")));

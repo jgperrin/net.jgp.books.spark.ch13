@@ -29,7 +29,7 @@ public class AcosApp {
         .getOrCreate();
 
     Dataset<Row> df = spark.read().format("csv")
-        .option("header", "true")
+        .option("header", true)
         .load("data/functions/trigo_arc.csv");
 
     df = df.withColumn("acos", acos(col("val")));
