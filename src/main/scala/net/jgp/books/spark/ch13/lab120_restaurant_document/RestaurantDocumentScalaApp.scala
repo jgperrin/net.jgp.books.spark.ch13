@@ -96,11 +96,11 @@ class RestaurantDocumentScalaApp {
     resDf = resDf.select(allColumns:_*)
 
     if (log.isDebugEnabled) {
+      log.debug("  Before nested join, we have {} rows.", resDf.count)
       resDf.printSchema()
       resDf.show(3)
     }
 
-    //
     resDf = resDf.groupBy(leftColumns:_*).agg(F.collect_list(F.col(TEMP_COL)).as(nestedCol))
 
     if (log.isDebugEnabled) {

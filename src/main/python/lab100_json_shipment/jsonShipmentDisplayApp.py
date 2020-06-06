@@ -3,24 +3,36 @@
 
  @author rambabu.posa
 """
-from pyspark.sql import SparkSession
 import os
+from pyspark.sql import SparkSession
 
-current_dir = os.path.dirname(__file__)
-relative_path = "../../../../data/json/shipment.json"
-absolute_file_path = os.path.join(current_dir, relative_path)
 
-# Creates a session on a local master
-spark = SparkSession.builder.appName("Display of shipment") \
-    .master("local[*]").getOrCreate()
+def get_absolute_file_path(filename):
+    # To get absolute path for a given filename
+    current_dir = os.path.dirname(__file__)
+    relative_path = "../../../../data/json/{}".format(filename)
+    absolute_file_path = os.path.join(current_dir, relative_path)
+    return absolute_file_path
 
-# Reads a JSON, stores it in a dataframe
-df = spark.read.format("json") \
-        .option("multiline", True) \
-        .load(absolute_file_path)
 
-# Shows at most 5 rows from the dataframe (there's only one anyway)
-df.show(5, 16)
-df.printSchema()
+def main(spark):
+    # The processing code.
+    absolute_file_path = get_absolute_file_path('shipment.json')
+    # Reads a JSON, stores it in a dataframe
+    df = spark.read.format("json") \
+            .option("multiline", True) \
+            .load(absolute_file_path)
 
-spark.stop()
+    # Shows at most 5 rows from the dataframe (there's only one anyway)
+    df.show(5, 16)
+    df.printSchema()
+
+
+if __name__ == '__main__':
+    # Creates a session on a local master
+    spark = SparkSession.builder.appName("Display of shipment") \
+        .master("local[*]").getOrCreate()
+    # Comment this line to see full log
+    spark.sparkContext.setLogLevel('error')
+    main(spark)
+    spark.stop()

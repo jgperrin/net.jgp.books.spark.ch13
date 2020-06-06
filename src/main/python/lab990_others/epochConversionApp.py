@@ -18,7 +18,7 @@ schema = StructType([
     StructField('ts', StringType(), False)
 ])
 
-now = int(round(time.time() * 1000))
+now = int(time.time())
 
 data = []
 
@@ -35,8 +35,9 @@ df = df.withColumn("date", F.from_unixtime(F.col("ts")))
 df.show()
 
 # Collecting the result and printing out
-timeRows = df.collectAsList()
+timeRows = [row for row in df.collect()]
+
 for row in timeRows:
-    print("[%d] : %s (%s)\n", row.getInt(0), row.getString(1), row.getString(2))
+    print("{} : {} ({})".format(row[0], row[1], row[2]))
 
 spark.stop()

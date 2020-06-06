@@ -3,12 +3,15 @@
 
  @author rambabu.posa
 """
-from pyspark.sql import SparkSession
 import os
+import logging
+from pyspark.sql import (SparkSession, functions as F)
 
 # Creates a session on a local master
 spark = SparkSession.builder.appName("Building a restaurant fact sheet") \
     .master("local[*]").getOrCreate()
+
+spark.sparkContext.setLogLevel("warn")
 
 def absolute_file_path(filename):
     current_dir = os.path.dirname(__file__)
@@ -38,14 +41,31 @@ businessDf.printSchema()
 inspectionDf.show(3)
 inspectionDf.printSchema()
 
-resDf = businessDf.join(inspectionDf, businessDf['business_id'] == inspectionDf['business_id'], "inner")
+join_condition = businessDf['business_id'] == inspectionDf['business_id']
+
+resDf = businessDf.join(inspectionDf, join_condition, "inner") \
+    .drop(inspectionDf['business_id'])
 
 resDf.printSchema()
 resDf.show(3)
 
-def getColumns(df):
-    fieldnames = df.columns
+struct_field = F.struct(resDf.business_id, resDf.score, resDf.date, resDf.type)
 
+factSheetDf = resDf.withColumn("inspections", struct_field) \
+    .drop("score", "date", "type")
 
+factSheetDf.printSchema()
+factSheetDf.show(3)
 
+logging.warning("Before nested join, we have {} rows.".format(factSheetDf.count()))
 
+left_columns = businessDf.columns
+
+factSheetDf = factSheetDf.groupBy(left_columns).agg(F.collect_list(F.col("inspections")))
+
+factSheetDf.printSchema()
+factSheetDf.show(3)
+
+logging.warning("After nested join, we have {} rows.".format(factSheetDf.count()))
+
+spark.stop()

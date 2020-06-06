@@ -3,9 +3,8 @@
 
  @author rambabu.posa
 """
-from pyspark.sql import SparkSession
-from pyspark.sql import (functions as F)
 import os
+from pyspark.sql import (SparkSession, functions as F)
 
 current_dir = os.path.dirname(__file__)
 relative_path = "../../../../data/json/shipment.json"

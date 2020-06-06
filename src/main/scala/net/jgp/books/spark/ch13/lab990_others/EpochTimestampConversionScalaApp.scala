@@ -25,7 +25,7 @@ object EpochTimestampConversionScalaApp {
      */
     // Creates a session on a local master
     val spark: SparkSession = SparkSession.builder
-      .appName("expr()")
+      .appName("Timestamp conversion")
       .master("local[*]")
       .getOrCreate
 
