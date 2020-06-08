@@ -40,7 +40,7 @@ git clone https://github.com/jgperrin/net.jgp.books.spark.ch13
 2. Go to the lab in the Python directory
 
 ```
-cd net.jgp.books.spark.ch01/src/main/python/lab100_json_shipment/
+cd net.jgp.books.spark.ch13/src/main/python/lab100_json_shipment/
 ```
 
 3. Execute the following spark-submit command to create a jar file to our this application
@@ -64,7 +64,7 @@ You will need:
 git clone https://github.com/jgperrin/net.jgp.books.spark.ch13
 ```
 
-2. cd net.jgp.books.spark.ch01
+2. cd net.jgp.books.spark.ch13
 
 3. Package application using sbt command
 
@@ -78,10 +78,12 @@ sbt clean assembly
 spark-submit --class net.jgp.books.spark.ch13.lab100_json_shipment.JsonShipmentDisplayScalaApp target/scala-2.12/SparkInAction2-Chapter13-assembly-1.0.0.jar
 ```
 
-
-
+## Notes
+ 1. [Java] Due to renaming the packages to match more closely Java standards, this project is not in sync with the book's MEAP prior to v10 (published in April 2019).
+ 2. [Scala, Python] As of MEAP v14, we have introduced Scala and Python examples (published in October 2019).
+ 
 ---
 
-Follow me on Twitter to get updates about the book and Apache Spark: [@jgperrin](https://twitter.com/jgperrin). Join the book's community on [Facebook](https://www.facebook.com/SparkWithJava/) or in [Manning's community site](https://forums.manning.com/forums/spark-in-action-second-edition?a_aid=jgp).
+Follow me on Twitter to get updates about the book and Apache Spark: [@jgperrin](https://twitter.com/jgperrin). Join the book's community on [Facebook](https://facebook.com/sparkinaction/) or in [Manning's live site](https://forums.manning.com/forums/spark-in-action-second-edition?a_aid=jgp).
 
 [1]: https://data.cityofnewyork.us
