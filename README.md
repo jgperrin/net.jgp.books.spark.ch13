@@ -4,8 +4,10 @@ The examples in this repository are support to the **[Spark in Action, 2nd editi
 
 Chapter 13 introduces **transforming entire documents**.
 
+This code is designed to work with Apache Spark v3.0.0.
+
 Datasets can be downloaded from:
-* ...
+* ... (to be added)
 
 ## Lab
 
