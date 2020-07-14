@@ -82,11 +82,10 @@ public class FlattenJsonApp {
           break;
         case STRUCT_TYPE:
           // Mapping
-          String ddl[] = field.toDDL().split("`"); // fragile :(
-          for (int i = 3; i < ddl.length; i += 2) {
-            processedDf = processedDf.withColumn(
-                field.name() + "_" + ddl[i],
-                processedDf.col(field.name() + "." + ddl[i]));
+          StructField[] structFields = ((StructType) field.dataType()).fields();
+          for (StructField structField : structFields) {
+            processedDf = processedDf.withColumn(field.name() + "_" + structField.name(),
+                processedDf.col(field.name() + "." + structField.name()));
           }
           processedDf = processedDf
               .drop(field.name());
