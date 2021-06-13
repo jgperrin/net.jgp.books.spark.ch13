@@ -41,7 +41,6 @@ You will need:
 
     cd net.jgp.books.spark.ch13/src/main/python/lab100_json_shipment/
 
-
 3. Execute the following spark-submit command to create a jar file to our this application
 
     spark-submit jsonShipmentDisplayApp.py
@@ -59,7 +58,6 @@ You will need:
 
     git clone https://github.com/jgperrin/net.jgp.books.spark.ch13
 
-
 2. Change to the right directory
 
     cd net.jgp.books.spark.ch13
@@ -70,9 +68,7 @@ You will need:
 
 4. Run Spark/Scala application using spark-submit command as shown below:
 
-```
-spark-submit --class net.jgp.books.spark.ch13.lab100_json_shipment.JsonShipmentDisplayScalaApp target/scala-2.12/SparkInAction2-Chapter13-assembly-1.0.0.jar
-```
+    spark-submit --class net.jgp.books.spark.ch13.lab100_json_shipment.JsonShipmentDisplayScalaApp target/scala-2.12/SparkInAction2-Chapter13-assembly-1.0.0.jar
 
 ## News
 
@@ -80,7 +76,8 @@ spark-submit --class net.jgp.books.spark.ch13.lab100_json_shipment.JsonShipmentD
  1. [2020-06-13] As we celebrate the first anniversary of Spark in Action, 2nd edition is the best-rated Apache Spark book on [Amazon](https://amzn.to/2TPnmOv). 
 
 ## Notes
-
+ 1. [Java] Due to renaming the packages to match more closely Java standards, this project is not in sync with the book's MEAP prior to v10 (published in April 2019).
+ 1. [Scala, Python] As of MEAP v14, we have introduced Scala and Python examples (published in October 2019).
  1. The master branch contains the last version of the code running against the latest supported version of Apache Spark. Look in specifics branches for specific versions.
 
 ---
