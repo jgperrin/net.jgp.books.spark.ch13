@@ -11,7 +11,7 @@ Datasets can be downloaded from:
 
 ## Lab
 
-Each chapter has one or more labs. Labs are examples used for teaching in the book(https://www.manning.com/books/spark-in-action-second-edition?a_aid=jgp). You are encouraged to take ownership of the code and modify it, experiment with it, hence the use of the term **lab**. This chapter has only one lab.
+Each chapter has one or more labs. Labs are examples used for teaching in the [book](https://www.manning.com/books/spark-in-action-second-edition?a_aid=jgp). You are encouraged to take ownership of the code and modify it, experiment with it, hence the use of the term **lab**. This chapter has only one lab.
 
 ### Lab \#100
 
@@ -35,44 +35,38 @@ You will need:
 
 1. Clone this project
 
-```
-git clone https://github.com/jgperrin/net.jgp.books.spark.ch13
-```
+    git clone https://github.com/jgperrin/net.jgp.books.spark.ch13
 
 2. Go to the lab in the Python directory
 
-```
-cd net.jgp.books.spark.ch01/src/main/python/lab100_json_shipment/
-```
+    cd net.jgp.books.spark.ch13/src/main/python/lab100_json_shipment/
+
 
 3. Execute the following spark-submit command to create a jar file to our this application
 
- ```
-spark-submit jsonShipmentDisplayApp.py
- ```
+    spark-submit jsonShipmentDisplayApp.py
+
 
 ## Running the lab in Scala
-
 
 Prerequisites:
 
 You will need:
  * `git`.
- * Apache Spark (please refer Appendix P - 'Spark in production: installation and a few tips'). 
+ * Apache Spark (please refer Appendix K - 'Spark in production: installation and a few tips'). 
 
 1. Clone this project
 
-```
-git clone https://github.com/jgperrin/net.jgp.books.spark.ch13
-```
+    git clone https://github.com/jgperrin/net.jgp.books.spark.ch13
 
-2. cd net.jgp.books.spark.ch01
+
+2. Change to the right directory
+
+    cd net.jgp.books.spark.ch13
 
 3. Package application using sbt command
 
-```
-sbt clean assembly
-```
+    sbt clean assembly
 
 4. Run Spark/Scala application using spark-submit command as shown below:
 
@@ -80,7 +74,14 @@ sbt clean assembly
 spark-submit --class net.jgp.books.spark.ch13.lab100_json_shipment.JsonShipmentDisplayScalaApp target/scala-2.12/SparkInAction2-Chapter13-assembly-1.0.0.jar
 ```
 
+## News
 
+ 1. [2020-06-13] Updated the `pom.xml` to support Apache Spark v3.1.2. 
+ 1. [2020-06-13] As we celebrate the first anniversary of Spark in Action, 2nd edition is the best-rated Apache Spark book on [Amazon](https://amzn.to/2TPnmOv). 
+
+## Notes
+
+ 1. The master branch contains the last version of the code running against the latest supported version of Apache Spark. Look in specifics branches for specific versions.
 
 ---
 
